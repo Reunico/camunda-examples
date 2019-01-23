@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_07ehl5s" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="2.2.3">
+  <bpmn:collaboration id="Collaboration_1cghmoa">
+    <bpmn:participant id="Participant_1cci4to" name="RE.001 Проверка действительности паспорта в Контур.Фокус" processRef="RE.001" />
+  </bpmn:collaboration>
+  <bpmn:process id="RE.001" name="RE.001 Проверка действительности паспорта в Контур.Фокус" isExecutable="true" camunda:versionTag="1.1">
+    <bpmn:startEvent id="StartEvent_1" name="Ввод номера паспорта" camunda:initiator="${currentUser()}">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="idNum" label="Серия и номер паспорта без пробелов" type="string">
+            <camunda:validation>
+              <camunda:constraint name="maxlength" config="11" />
+              <camunda:constraint name="minlength" config="10" />
+              <camunda:constraint name="required" />
+            </camunda:validation>
+          </camunda:formField>
+          <camunda:formField id="apiKey" label="Контур Фокус API Key" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>SequenceFlow_068jhhc</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_068jhhc" sourceRef="StartEvent_1" targetRef="Task_0cs799x" />
+    <bpmn:serviceTask id="Task_0cs799x" name="Запрос к API">
+      <bpmn:extensionElements>
+        <camunda:connector>
+          <camunda:inputOutput>
+            <camunda:inputParameter name="url">https://focus-api.kontur.ru/api3/checkPassport?key=${apiKey}&amp;passportNumber=${idNum}</camunda:inputParameter>
+            <camunda:inputParameter name="method">GET</camunda:inputParameter>
+            <camunda:outputParameter name="output">
+              <camunda:script scriptFormat="JavaScript">connector.setVariable("passportNumber", S(response).elements().get(0).prop("passportNumber").stringValue());
+connector.setVariable("isInvalid", S(response).elements().get(0).prop("isInvalid").boolValue());</camunda:script>
+            </camunda:outputParameter>
+            <camunda:outputParameter name="statusCode">
+              <camunda:script scriptFormat="JavaScript">statusCode;</camunda:script>
+            </camunda:outputParameter>
+          </camunda:inputOutput>
+          <camunda:connectorId>http-connector</camunda:connectorId>
+        </camunda:connector>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_068jhhc</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_06gfhqa</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="ExclusiveGateway_0foxmun" name="Успешно?">
+      <bpmn:incoming>SequenceFlow_06gfhqa</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0qqpwwt</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_1kd2ieu</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_06gfhqa" sourceRef="Task_0cs799x" targetRef="ExclusiveGateway_0foxmun" />
+    <bpmn:sequenceFlow id="SequenceFlow_0qqpwwt" name="Нет" sourceRef="ExclusiveGateway_0foxmun" targetRef="Task_0xjuw5w">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${statusCode != 200}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="SequenceFlow_1kd2ieu" name="Да" sourceRef="ExclusiveGateway_0foxmun" targetRef="ExclusiveGateway_1hkgadu">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${statusCode == 200}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:exclusiveGateway id="ExclusiveGateway_1hkgadu" name="Паспорт недействителен?">
+      <bpmn:incoming>SequenceFlow_1kd2ieu</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1hqncqh</bpmn:outgoing>
+      <bpmn:outgoing>SequenceFlow_1hn8tiw</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="SequenceFlow_1hqncqh" name="Да" sourceRef="ExclusiveGateway_1hkgadu" targetRef="Task_1k5s7si">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${isInvalid}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:userTask id="Task_1k5s7si" name="Паспорт недействителен" camunda:assignee="${currentUser()}">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="passportNumber" label="Номер паспорта" type="string" defaultValue="${passportNumber}" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1hqncqh</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0tt8wu5</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="SequenceFlow_1hn8tiw" name="Нет" sourceRef="ExclusiveGateway_1hkgadu" targetRef="Task_1pad2op">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!isInvalid}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:userTask id="Task_1pad2op" name="Паспорт действителен" camunda:assignee="${currentUser()}">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="passportNumber" label="Номер паспорта" type="string" defaultValue="${passportNumber}" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_1hn8tiw</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_1v4c1f4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_0xjuw5w" name="Информировать пользователя" camunda:assignee="${currentUser()}">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="errorCodeText" label="Запрос не выполнен! Сервис вернул статус:" type="string" defaultValue="${statusCode}" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>SequenceFlow_0qqpwwt</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_0j9lrxc</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="EndEvent_16qx7gg">
+      <bpmn:incoming>SequenceFlow_0tt8wu5</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_1v4c1f4</bpmn:incoming>
+      <bpmn:incoming>SequenceFlow_0j9lrxc</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="SequenceFlow_0tt8wu5" sourceRef="Task_1k5s7si" targetRef="EndEvent_16qx7gg" />
+    <bpmn:sequenceFlow id="SequenceFlow_1v4c1f4" sourceRef="Task_1pad2op" targetRef="EndEvent_16qx7gg" />
+    <bpmn:sequenceFlow id="SequenceFlow_0j9lrxc" sourceRef="Task_0xjuw5w" targetRef="EndEvent_16qx7gg" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1cghmoa">
+      <bpmndi:BPMNShape id="Participant_1cci4to_di" bpmnElement="Participant_1cci4to">
+        <dc:Bounds x="167" y="100" width="974" height="540" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="245" y="259" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="231" y="302" width="67" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_068jhhc_di" bpmnElement="SequenceFlow_068jhhc">
+        <di:waypoint x="281" y="277" />
+        <di:waypoint x="331" y="277" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ServiceTask_1o8tplg_di" bpmnElement="Task_0cs799x">
+        <dc:Bounds x="331" y="237" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExclusiveGateway_0foxmun_di" bpmnElement="ExclusiveGateway_0foxmun" isMarkerVisible="true">
+        <dc:Bounds x="481" y="252" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="480" y="228" width="51" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_06gfhqa_di" bpmnElement="SequenceFlow_06gfhqa">
+        <di:waypoint x="431" y="277" />
+        <di:waypoint x="481" y="277" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0qqpwwt_di" bpmnElement="SequenceFlow_0qqpwwt">
+        <di:waypoint x="506" y="302" />
+        <di:waypoint x="506" y="504" />
+        <di:waypoint x="777" y="504" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="651" y="482" width="19" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_1jyv6fb_di" bpmnElement="Task_0xjuw5w">
+        <dc:Bounds x="777" y="464" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1kd2ieu_di" bpmnElement="SequenceFlow_1kd2ieu">
+        <di:waypoint x="531" y="277" />
+        <di:waypoint x="629" y="277" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="573" y="259" width="14" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="ExclusiveGateway_1hkgadu_di" bpmnElement="ExclusiveGateway_1hkgadu" isMarkerVisible="true">
+        <dc:Bounds x="629" y="252" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="609" y="215" width="89" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1hqncqh_di" bpmnElement="SequenceFlow_1hqncqh">
+        <di:waypoint x="679" y="277" />
+        <di:waypoint x="777" y="277" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="721" y="259" width="14" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_1f7rluy_di" bpmnElement="Task_1k5s7si">
+        <dc:Bounds x="777" y="237" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_1hn8tiw_di" bpmnElement="SequenceFlow_1hn8tiw">
+        <di:waypoint x="654" y="302" />
+        <di:waypoint x="654" y="387" />
+        <di:waypoint x="777" y="387" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="660" y="342" width="19" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="UserTask_0qvdj9x_di" bpmnElement="Task_1pad2op">
+        <dc:Bounds x="777" y="347" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_16qx7gg_di" bpmnElement="EndEvent_16qx7gg">
+        <dc:Bounds x="975" y="259" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SequenceFlow_0tt8wu5_di" bpmnElement="SequenceFlow_0tt8wu5">
+        <di:waypoint x="877" y="277" />
+        <di:waypoint x="975" y="277" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_1v4c1f4_di" bpmnElement="SequenceFlow_1v4c1f4">
+        <di:waypoint x="877" y="387" />
+        <di:waypoint x="926" y="387" />
+        <di:waypoint x="926" y="277" />
+        <di:waypoint x="975" y="277" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SequenceFlow_0j9lrxc_di" bpmnElement="SequenceFlow_0j9lrxc">
+        <di:waypoint x="877" y="504" />
+        <di:waypoint x="926" y="504" />
+        <di:waypoint x="926" y="277" />
+        <di:waypoint x="975" y="277" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
