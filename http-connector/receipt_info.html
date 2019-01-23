@@ -1,0 +1,77 @@
+<form role="form" name="form">
+<script cam-script="cam-script" type="text/form-script">
+    var vM = camForm.variableManager;
+    camForm.on('form-loaded', function() {
+        vM.fetchVariable('response');
+    });
+    camForm.on('variables-fetched', function() {
+	$scope.receiptNo = vM.variableValue('response').document.receipt.fiscalDocumentNumber;
+	$scope.seller = vM.variableValue('response').document.receipt.user;
+	$scope.sellerInn = vM.variableValue('response').document.receipt.userInn;
+	$scope.datetime = vM.variableValue('response').document.receipt.dateTime;
+	$scope.place = vM.variableValue('response').document.receipt.retailPlaceAddress;
+	$scope.amount = vM.variableValue('response').document.receipt.totalSum / 100;
+	$scope.items = vM.variableValue('response').document.receipt.items;
+    });
+</script>
+<div class="form-group">
+<fieldset>
+    <legend>Approvement</legend>
+               <input type="checkbox" 
+           cam-variable-name="isApproved"
+           cam-variable-type="Boolean"
+           />
+    <label for="isApproved">Approve Receipt</label><br/>
+
+</fieldset>
+<fieldset>
+    <legend>Receipt Details</legend>
+    <label for="receiptNo">Receipt No.:</label>
+    <input type="text"
+           cam-variable-name="receiptNo"
+           cam-variable-type="String"
+           ng-model="receiptNo"
+           class="form-control" readonly/>
+    <label for="datetime">Date / Time:</label>
+    <input type="text"
+           cam-variable-name="datetime"
+           cam-variable-type="String"
+           class="form-control"  readonly />
+    <label for="address">Address:</label>
+    <input type="text"
+           cam-variable-name="place"
+           cam-variable-type="String"
+           class="form-control"  readonly />
+    <label for="seller">Seller:</label>
+    <input type="text"
+           cam-variable-name="seller"
+           cam-variable-type="String"
+           class="form-control" readonly />
+    <label for="sellerInn">Seller Tax ID:</label>
+    <input type="text"
+           cam-variable-name="sellerInn"
+           cam-variable-type="String"
+           class="form-control" readonly />
+    <label for="sellerTaxId">Amount (RUB):</label>
+    <input type="text"
+           cam-variable-name="amount"
+           cam-variable-type="Double"
+           class="form-control"  readonly />
+
+</fieldset>
+<hr/>
+<table class="process-definitions-list cam-table">
+<thead>
+    <th>Name</th>
+    <th style="text-align: right;">Price (RUB)</th>
+    <th style="text-align: right;">Quantity</th>
+    <th style="text-align: right;">Amount (RUB)</th>
+</thead>
+<tr ng-repeat="item in items">
+    <td>{{ item.name }}</td>
+    <td style="text-align: right;">{{ item.price / 100 }}</td>
+    <td style="text-align: right;">{{ item.quantity }}</td>
+    <td style="text-align: right;">{{ item.sum / 100}}</td></tr>
+</ul>
+</div>
+</form>
