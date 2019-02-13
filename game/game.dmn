@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/DMN/20151101/dmn.xsd" xmlns:biodi="http://bpmn.io/schema/dmn/biodi/1.0" xmlns:camunda="http://camunda.org/schema/1.0/dmn" id="Definitions_0htuhnn" name="DRD" namespace="http://camunda.org/schema/1.0/dmn">
+  <decision id="Game" name="Game">
+    <extensionElements>
+      <biodi:bounds x="200" y="200" width="180" height="80" />
+    </extensionElements>
+    <decisionTable id="decisionTable_1">
+      <input id="input_1" label="bet1" camunda:inputVariable="bet1">
+        <inputExpression id="inputExpression_1" typeRef="string">
+          <text>bet1</text>
+        </inputExpression>
+      </input>
+      <input id="InputClause_1sjsymf" label="bet2" camunda:inputVariable="bet2">
+        <inputExpression id="LiteralExpression_1rhxw83" typeRef="string">
+          <text>bet2</text>
+        </inputExpression>
+      </input>
+      <output id="output_1" label="winner" name="winner" typeRef="string" />
+      <rule id="DecisionRule_0zc4zzv">
+        <inputEntry id="UnaryTests_1qv0auu">
+          <text>"камень"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1ftt960">
+          <text>"ножницы"</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_01e3mze">
+          <text>"player1"</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0crjtkq">
+        <inputEntry id="UnaryTests_1vyal0d">
+          <text>"ножницы"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0qm5dxb">
+          <text>"камень"</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0wm1mun">
+          <text>"player2"</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_1mn2j51">
+        <inputEntry id="UnaryTests_11l578f">
+          <text>"камень"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0msq167">
+          <text>"бумага"</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_072e4pj">
+          <text>"player2"</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_1lieuzi">
+        <inputEntry id="UnaryTests_1b0hxov">
+          <text>"бумага"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0vadf5w">
+          <text>"камень"</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0iwm7o6">
+          <text>"player1"</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0yfneqr">
+        <inputEntry id="UnaryTests_0bt5xlg">
+          <text>"ножницы"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1f1ekkw">
+          <text>"бумага"</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_1vsli1v">
+          <text>"player1"</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0ltk6lh">
+        <inputEntry id="UnaryTests_0ckyjk8">
+          <text>"бумага"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0cmrvu2">
+          <text>"ножницы"</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_1lrjyu7">
+          <text>"player2"</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_1n3879c">
+        <inputEntry id="UnaryTests_13fpebm">
+          <text>"камень"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1nk6s19">
+          <text>"камень"</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_1t18gzb">
+          <text>"none"</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_17be848">
+        <inputEntry id="UnaryTests_0m8qhiu">
+          <text>"ножницы"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1sgb51z">
+          <text>"ножницы"</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_1s6wt1m">
+          <text>"none"</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_033opru">
+        <inputEntry id="UnaryTests_0rlx3zv">
+          <text>"бумага"</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1r65kkk">
+          <text>"бумага"</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0x64t59">
+          <text>"none"</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>
